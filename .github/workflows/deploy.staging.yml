@@ -1,0 +1,46 @@
+# Now Github Action Workflow is safety than before
+# If your code build failed, it will not stop your web application, your website will work normally
+# When Code build complete, Server will only restart (temporary down) in just one or few second
+# To improve your Web application quality after each build. I suggest to integrate E2E Test Headless like cypress or Unit test.
+name: Deploy to Staging
+
+on:
+  push:
+    branches: ["main"]
+
+env:
+  APP_ENV: ${{ secrets.STAGING }}
+
+jobs:
+  build:
+    name: "Deploy to Staging"
+    environment:
+      name: staging
+
+    runs-on: [self-hosted, staging]
+
+    strategy:
+      matrix:
+        node-version: [16.x]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install Yarn, PM2 (Install first time only, after that this command run quickly)
+        run: npm install -g yarn pm2 nodemon
+
+      - name: Remove package-lock.json (Prevent error or conflicted version of npm, yarn, etc when developer forgot to delete it in pull request)
+        run: rm -r -f package-lock.json
+
+      - name: Install or Update Node Module from package.json
+        run: yarn
+
+      - name: Change directory to Web Server Folder and restart Web Server.
+        run: |
+          RUNNER_TRACKING_ID="" && \
+          pm2 start nodemon -- app.js && \
+          pm2 restart nodemon

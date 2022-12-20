@@ -3,7 +3,7 @@ import sha from "./lib/sha.js";
 import keyUtilities from "./lib/key-utilities.js";
 
 const app = express();
-const port = 3000;
+const port = 3456;
 
 app.get("/", (req, res) => {
   res.send("Gencode");
